@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마켓링크 판매자</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F97316">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="마켓링크 판매자">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:linear-gradient(135deg,#1E293B,#334155);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;}
+.phone-frame{width:393px;height:852px;background:#111;border-radius:52px;padding:12px;box-shadow:0 40px 100px rgba(0,0,0,.5),0 0 0 1px #333;position:relative;}
+.phone-frame::before{content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#111;border-radius:0 0 20px 20px;z-index:100;}
+.phone-screen{width:100%;height:100%;background:#F1F5F9;border-radius:42px;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.status-bar{background:#1E293B;padding:14px 24px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.sb-time{font-size:15px;font-weight:800;color:#fff;}
+.sb-icons{font-size:13px;color:#94A3B8;}
+.app-content{flex:1;overflow:hidden;position:relative;}
+.page{position:absolute;inset:0;overflow-y:auto;display:none;background:#F1F5F9;}
+.page.active{display:block;}
+.pb{padding-bottom:80px;}
+.bottom-nav{background:#1E293B;display:flex;flex-shrink:0;padding:8px 0 18px;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 0;user-select:none;}
+.tab-icon{font-size:20px;}
+.tab-label{font-size:9px;font-weight:700;color:#475569;transition:color .15s;}
+.tab.active .tab-label{color:#F97316;}
+.page-header{background:#1E293B;padding:50px 18px 20px;color:#fff;}
+.ph-eyebrow{font-size:10px;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.ph-title{font-size:20px;font-weight:900;margin-top:4px;}
+.ph-sub{font-size:11px;color:#94A3B8;margin-top:3px;}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0;}
+.kpi-card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.kpi-val{font-size:26px;font-weight:900;color:#1E293B;margin:4px 0 2px;}
+.kpi-lbl{font-size:10px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-trend{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:4px;display:inline-block;}
+.up{background:#DCFCE7;color:#16A34A;}
+.warm{background:#FFF7ED;color:#F97316;}
+.sec-title{font-size:13px;font-weight:800;color:#1E293B;padding:14px 14px 8px;display:flex;align-items:center;gap:6px;}
+.sec-title small{font-size:10px;color:#94A3B8;font-weight:600;margin-left:auto;}
+.card{background:#fff;border-radius:14px;padding:16px;margin:0 14px 10px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+.btn-pr{background:linear-gradient(135deg,#F97316,#EF4444);color:#fff;}
+.btn-se{background:#F1F5F9;color:#475569;}
+.btn-ok{background:#22C55E;color:#fff;}
+.btn-ng{background:#FEE2E2;color:#EF4444;}
+.btn-sm{padding:7px 14px;font-size:11px;border-radius:9px;}
+.badge{display:inline-block;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;}
+.bg-g{background:#DCFCE7;color:#16A34A;}
+.bg-o{background:#FFF7ED;color:#F97316;}
+.bg-b{background:#DBEAFE;color:#2563EB;}
+.bg-gr{background:#F1F5F9;color:#64748B;}
+/* Group cards */
+.group-card{background:#fff;border-radius:14px;margin:0 14px 10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.gc-top{padding:14px;display:flex;align-items:flex-start;gap:10px;}
+.gc-icons{display:flex;gap:4px;flex-wrap:wrap;max-width:100px;}
+.gc-icon{width:30px;height:30px;border-radius:8px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.gc-info{flex:1;}
+.gc-name{font-size:13px;font-weight:800;color:#1E293B;}
+.gc-reward{font-size:11px;color:#F97316;font-weight:700;margin-top:2px;}
+.gc-role{font-size:10px;color:#94A3B8;margin-top:2px;}
+.gc-stats{display:flex;gap:14px;padding:10px 14px;background:#F8FAFC;border-top:1px solid #F1F5F9;}
+.gc-stat{font-size:11px;color:#64748B;}
+.gc-stat strong{color:#1E293B;font-weight:800;}
+.gc-btns{padding:10px 14px;display:flex;gap:8px;}
+/* Request cards */
+.req-card{background:#fff;border-radius:14px;margin:0 14px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #F97316;}
+.rc-from{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.rc-icon{width:36px;height:36px;border-radius:10px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.rc-name{font-size:13px;font-weight:800;color:#1E293B;}
+.rc-sub{font-size:11px;color:#64748B;}
+.rc-group-box{background:#F8FAFC;border-radius:10px;padding:10px;margin-bottom:8px;}
+.rc-gname{font-size:12px;font-weight:800;color:#1E293B;margin-bottom:6px;}
+.rc-stores{display:flex;gap:6px;align-items:center;}
+.rc-sicon{width:28px;height:28px;border-radius:8px;background:#fff;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.rc-msg{font-size:11px;color:#64748B;font-style:italic;margin-bottom:10px;}
+.rc-btns{display:flex;gap:8px;}
+/* Receipts */
+.rr-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #F8FAFC;}
+.rr-dot{width:34px;height:34px;border-radius:10px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.rr-info{flex:1;}
+.rr-c{font-size:12px;font-weight:700;color:#1E293B;}
+.rr-d{font-size:10px;color:#94A3B8;margin-top:1px;}
+.rr-r{text-align:right;}
+.rr-a{font-size:12px;font-weight:700;}
+.rr-t{font-size:10px;color:#94A3B8;}
+/* Recommend */
+.rec-card{background:#fff;border-radius:14px;margin:0 14px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.rc-top2{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.rc-sicon2{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.sc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.sc-bar{height:5px;background:#F1F5F9;border-radius:3px;margin-bottom:10px;}
+.sc-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#F97316,#EF4444);}
+.rec-reason{font-size:10px;color:#64748B;background:#F8FAFC;padding:8px;border-radius:8px;margin-bottom:10px;line-height:1.5;}
+/* Map */
+#seller-map{height:430px;border-radius:14px;overflow:hidden;margin:0 14px 14px;}
+/* Chart */
+.chart-wrap{position:relative;height:175px;}
+/* Modal */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.modal-back.open{display:flex;}
+.modal-sheet{background:#fff;border-radius:28px 28px 0 0;width:100%;max-width:393px;padding:20px;max-height:88vh;overflow-y:auto;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:#E2E8F0;border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:15px;font-weight:900;color:#1E293B;margin-bottom:14px;}
+.fg label{display:block;font-size:10px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.fg input,.fg select{width:100%;padding:10px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;color:#1E293B;margin-bottom:12px;}
+.store-pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.store-pick{border:1.5px solid #E2E8F0;border-radius:10px;padding:10px;cursor:pointer;text-align:center;transition:all .15s;user-select:none;}
+.store-pick.sel{border-color:#F97316;background:#FFF7ED;}
+.sp-icon{font-size:20px;margin-bottom:3px;}
+.sp-name{font-size:11px;font-weight:700;color:#374151;}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1E293B;color:#fff;padding:11px 18px;border-radius:12px;font-size:12px;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transition:all .3s;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-left:3px solid #22C55E;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+ <div class="phone-screen">
+  <div class="status-bar">
+   <div class="sb-time" id="s-clock">9:41</div>
+   <div class="sb-icons">📶 🔋</div>
+  </div>
+  <div class="app-content">
+   <!-- 대시보드 -->
+   <div class="page active pb" id="s-dashboard">
+    <div class="page-header">
+     <div class="ph-eyebrow">🥩 일등축산 · 판매자</div>
+     <div class="ph-title">오늘의 현황</div>
+     <div class="ph-sub">대전 동구 중앙로 215</div>
+    </div>
+    <div class="kpi-grid">
+     <div class="kpi-card"><div class="kpi-lbl">오늘 인증</div><div class="kpi-val">12</div><span class="kpi-trend up">▲ 33%</span></div>
+     <div class="kpi-card"><div class="kpi-lbl">발급 쿠폰</div><div class="kpi-val">8</div><span class="kpi-trend up">▲ 60%</span></div>
+     <div class="kpi-card"><div class="kpi-lbl">활성 그룹</div><div class="kpi-val">2</div><span class="kpi-trend warm">+1 이번달</span></div>
+     <div class="kpi-card"><div class="kpi-lbl">연계 매출↑</div><div class="kpi-val" style="font-size:20px">+18%</div><span class="kpi-trend up">추정치</span></div>
+    </div>
+    <div class="sec-title">🧾 오늘의 영수증 인증 <small>실시간</small></div>
+    <div id="s-receipts"></div>
+    <div class="sec-title">👥 활성 그룹</div>
+    <div id="s-group-summary"></div>
+   </div>
+   <!-- 추천 -->
+   <div class="page pb" id="s-recommend">
+    <div class="page-header">
+     <div class="ph-eyebrow">소진공 업종 보완성 데이터 기반</div>
+     <div class="ph-title">연계 추천 가게</div>
+     <div class="ph-sub">함께하면 매출이 오르는 가게들</div>
+    </div>
+    <div style="height:12px"></div>
+    <div id="s-rec-list"></div>
+   </div>
+   <!-- 그룹 -->
+   <div class="page pb" id="s-groups">
+    <div class="page-header">
+     <div class="ph-eyebrow">연계 구매 그룹</div>
+     <div class="ph-title">그룹 관리</div>
+     <div class="ph-sub">2곳 이상의 가게가 함께하는 연계 서비스</div>
+    </div>
+    <div style="padding:14px 14px 0"><button class="btn btn-pr" onclick="openCreateModal()">+ 새 그룹 만들기</button></div>
+    <div class="sec-title">🔔 받은 연계 요청 <small id="req-cnt">1건</small></div>
+    <div id="s-requests"></div>
+    <div class="sec-title">👥 내 그룹</div>
+    <div id="s-my-groups"></div>
+   </div>
+   <!-- 지도 -->
+   <div class="page pb" id="s-map-page">
+    <div class="page-header">
+     <div class="ph-eyebrow">대전중앙시장</div>
+     <div class="ph-title">상권 지도</div>
+     <div class="ph-sub">파트너 가게와 연계 현황</div>
+    </div>
+    <div style="height:12px"></div>
+    <div id="seller-map"></div>
+   </div>
+   <!-- 분석 -->
+   <div class="page pb" id="s-analytics">
+    <div class="page-header">
+     <div class="ph-eyebrow">데이터 분석</div>
+     <div class="ph-title">매출 분석</div>
+     <div class="ph-sub">연계 그룹 도입 효과</div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="card"><div style="font-size:11px;font-weight:800;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">📈 월별 매출 추이</div><div class="chart-wrap"><canvas id="s-sales"></canvas></div></div>
+    <div class="card"><div style="font-size:11px;font-weight:800;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">🤝 그룹 도입 전후 비교</div><div class="chart-wrap"><canvas id="s-compare"></canvas></div></div>
+    <div class="card"><div style="font-size:11px;font-weight:800;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⏰ 시간대별 인증 분포</div><div class="chart-wrap"><canvas id="s-hour"></canvas></div></div>
+   </div>
+  </div>
+  <!-- 하단 탭바 -->
+  <div class="bottom-nav">
+   <div class="tab active" onclick="sTab('dashboard')" id="st-dashboard"><div class="tab-icon">🏠</div><div class="tab-label">대시보드</div></div>
+   <div class="tab" onclick="sTab('recommend')" id="st-recommend"><div class="tab-icon">💡</div><div class="tab-label">추천</div></div>
+   <div class="tab" onclick="sTab('groups')" id="st-groups"><div class="tab-icon">👥</div><div class="tab-label">그룹</div></div>
+   <div class="tab" onclick="sTab('map-page')" id="st-map-page"><div class="tab-icon">🗺️</div><div class="tab-label">지도</div></div>
+   <div class="tab" onclick="sTab('analytics')" id="st-analytics"><div class="tab-icon">📈</div><div class="tab-label">분석</div></div>
+  </div>
+ </div>
+</div>
+<!-- 그룹 만들기 -->
+<div class="modal-back" id="create-modal">
+ <div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">+ 새 연계 그룹 만들기</div>
+  <div class="fg"><label>그룹 이름</label><input id="cg-name" placeholder="예: 중앙시장 밥상 패키지"></div>
+  <div style="font-size:10px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">파트너 가게 선택 (최소 1곳)</div>
+  <div class="store-pick-grid" id="store-pick-grid"></div>
+  <div class="fg"><label>가게별 최소 구매금액 (원)</label><input id="cg-min" type="number" value="10000"></div>
+  <div class="fg"><label>각 가게 할인율 (%)</label><input id="cg-rate" type="number" value="10"></div>
+  <div style="display:flex;gap:8px">
+   <button class="btn btn-pr" onclick="submitCreate()" style="flex:1">그룹 생성</button>
+   <button class="btn btn-se" onclick="closeCreateModal()" style="flex:.5">취소</button>
+  </div>
+ </div>
+</div>
+<!-- 그룹 상세 -->
+<div class="modal-back" id="gd-modal">
+ <div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div id="gd-content"></div>
+  <button class="btn btn-se" onclick="closeGD()" style="margin-top:10px">닫기</button>
+ </div>
+</div>
+<div class="toast" id="s-toast"></div>
+<script>
+const RECS=[
+ {name:'행복상회',cat:'채소',icon:'🥬',color:'#22C55E',dist:'34m',score:96,reason:'정육+채소 동반구매율 89% — 중앙동 내 최다 동반구매 업종',p:true},
+ {name:'완도상회',cat:'건어물',icon:'🦐',color:'#3B82F6',dist:'42m',score:91,reason:'정육+건어물 동반구매율 76% — 주말 장보기 동시 방문 패턴',p:true},
+ {name:'선희네김치',cat:'반찬',icon:'🥗',color:'#14B8A6',dist:'38m',score:85,reason:'정육+김치 동반구매율 73% — 가정식 세트 수요 높음',p:false},
+ {name:'대우땅콩',cat:'채소/잡곡',icon:'🥜',color:'#6B7280',dist:'29m',score:80,reason:'정육+잡곡 동반구매율 66% — 가족 단위 구매 필수 연계',p:false},
+ {name:'미나리형제상회',cat:'채소',icon:'🥦',color:'#16A34A',dist:'57m',score:75,reason:'채소 업종 중 인근 보완 수요 2위 점포',p:false},
+];
+let MY_GROUPS=[
+ {id:1,name:'중앙시장 밥상 패키지',stores:['일등축산','행복상회','완도상회'],icons:['🥩','🥬','🦐'],reward:'각 10% 할인',min:10000,part:47,rec:23,role:'owner'},
+ {id:2,name:'중앙시장 김치·야채 세트',stores:['일등축산','선희네김치'],icons:['🥩','🥗'],reward:'각 5% 할인',min:15000,part:31,rec:18,role:'member'},
+];
+let REQUESTS=[
+ {id:1,fromStore:'선희네김치',fromIcon:'🥗',fromOwner:'김선희',groupName:'중앙시장 가정식 세트',stores:['선희네김치','일등축산','행복상회'],icons:['🥗','🥩','🥬'],reward:'각 8% 할인',msg:'김치+정육+채소 세트로 주부 고객층을 같이 공략해요!'},
+];
+const TODAY_REC=[
+ {c:'소비자 ****2847',s:'일등축산',a:'28,000원',g:'중앙시장 밥상 패키지',t:'14:23',done:true},
+ {c:'소비자 ****1523',s:'중앙청과물상회',a:'15,500원',g:'중앙시장 밥상 패키지',t:'13:45',done:false},
+ {c:'소비자 ****9031',s:'황금쌀가게',a:'32,000원',g:'중앙 건강한끼 세트',t:'13:10',done:true},
+ {c:'소비자 ****4417',s:'일등축산',a:'19,800원',g:'중앙시장 밥상 패키지',t:'12:30',done:true},
+ {c:'소비자 ****7722',s:'중앙할머니반찬',a:'11,000원',g:'중앙시장 밥상 패키지',t:'11:55',done:false},
+];
+const MAP_STORES=[
+ {name:'행복상회',icon:'🥬',lat:36.3302,lng:127.4339,color:'#22C55E',p:true},
+ {name:'완도상회',icon:'🦐',lat:36.3289,lng:127.4309,color:'#3B82F6',p:true},
+ {name:'선희네김치',icon:'🥗',lat:36.3290,lng:127.4313,color:'#14B8A6',p:false},
+ {name:'대우땅콩',icon:'🥜',lat:36.3291,lng:127.4317,color:'#6B7280',p:false},
+ {name:'미나리형제상회',icon:'🥦',lat:36.3302,lng:127.4340,color:'#16A34A',p:false},
+];
+let mapInited=false,chartsInited=false,selPicks=[];
+function updateClock(){const n=new Date();document.getElementById('s-clock').textContent=n.getHours()+':'+(n.getMinutes()+'').padStart(2,'0');}
+updateClock();setInterval(updateClock,30000);
+function sTab(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ document.getElementById('s-'+id).classList.add('active');
+ document.getElementById('st-'+id).classList.add('active');
+ if(id==='map-page'&&!mapInited){setTimeout(initMap,100);mapInited=true;}
+ if(id==='analytics'&&!chartsInited){setTimeout(initCharts,100);chartsInited=true;}
+}
+function renderDashboard(){
+ document.getElementById('s-receipts').innerHTML=TODAY_REC.map(r=>`
+  <div class="rr-row">
+   <div class="rr-dot">🧾</div>
+   <div class="rr-info"><div class="rr-c">${r.c}</div><div class="rr-d">${r.s} · ${r.g}</div></div>
+   <div class="rr-r"><div class="rr-a">${r.a}</div><div class="rr-t">${r.t} · <span style="color:${r.done?'#16A34A':'#F97316'}">${r.done?'쿠폰발급':'인증대기'}</span></div></div>
+  </div>`).join('');
+ document.getElementById('s-group-summary').innerHTML=MY_GROUPS.map(g=>`
+  <div class="group-card">
+   <div class="gc-top">
+    <div class="gc-icons">${g.icons.map(i=>`<div class="gc-icon">${i}</div>`).join('')}</div>
+    <div class="gc-info"><div class="gc-name">${g.name}</div><div class="gc-reward">${g.reward}</div><div class="gc-role">${g.role==='owner'?'👑 그룹장':'🤝 멤버'}</div></div>
+    <span class="badge bg-g">활성</span>
+   </div>
+   <div class="gc-stats">
+    <div class="gc-stat">참여 소비자 <strong>${g.part}명</strong></div>
+    <div class="gc-stat">이번달 인증 <strong>${g.rec}건</strong></div>
+   </div>
+  </div>`).join('');
+}
+function renderRec(){
+ document.getElementById('s-rec-list').innerHTML=RECS.map(s=>`
+  <div class="rec-card">
+   <div class="rc-top2">
+    <div class="rc-sicon2" style="background:${s.color}22">${s.icon}</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:800;color:#1E293B">${s.name}</div><div style="font-size:11px;color:#64748B">${s.cat} · 📍 ${s.dist}</div></div>
+    <span class="badge ${s.p?'bg-g':'bg-o'}">${s.p?'파트너':'추천'}</span>
+   </div>
+   <div class="sc-row"><span style="font-size:10px;color:#64748B">추천 점수</span><span style="font-size:12px;font-weight:800;color:#F97316">${s.score}점</span></div>
+   <div class="sc-bar"><div class="sc-fill" style="width:${s.score}%"></div></div>
+   <div class="rec-reason">${s.reason}</div>
+   ${s.p
+    ?`<button class="btn btn-se btn-sm" onclick="showGD(1)">📊 그룹 현황 보기</button>`
+    :`<button class="btn btn-pr btn-sm" onclick="inviteStore('${s.name}')">🤝 그룹에 초대</button>`
+   }
+  </div>`).join('');
+}
+function renderGroups(){
+ const rEl=document.getElementById('s-requests');
+ rEl.innerHTML=REQUESTS.length?REQUESTS.map(r=>`
+  <div class="req-card">
+   <div class="rc-from">
+    <div class="rc-icon">${r.fromIcon}</div>
+    <div><div class="rc-name">${r.fromStore}</div><div class="rc-sub">점주: ${r.fromOwner}</div></div>
+   </div>
+   <div class="rc-group-box">
+    <div class="rc-gname">제안 그룹: ${r.groupName}</div>
+    <div class="rc-stores">${r.icons.map((ic,i)=>`${i>0?'<span style="color:#F97316;font-size:12px;margin:0 2px">+</span>':''}<div class="rc-sicon">${ic}</div>`).join('')}<span style="font-size:11px;color:#F97316;font-weight:700;margin-left:8px">${r.reward}</span></div>
+   </div>
+   <div class="rc-msg">"${r.msg}"</div>
+   <div class="rc-btns">
+    <button class="btn btn-ok btn-sm" onclick="handleReq(${r.id},true)" style="flex:1">✅ 수락</button>
+    <button class="btn btn-ng btn-sm" onclick="handleReq(${r.id},false)" style="flex:1">✗ 거절</button>
+   </div>
+  </div>`).join(''):'<div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px">받은 요청이 없습니다</div>';
+ document.getElementById('s-my-groups').innerHTML=MY_GROUPS.map(g=>`
+  <div class="group-card">
+   <div class="gc-top">
+    <div class="gc-icons">${g.icons.map(i=>`<div class="gc-icon">${i}</div>`).join('')}</div>
+    <div class="gc-info"><div class="gc-name">${g.name}</div><div class="gc-reward">${g.reward}</div><div class="gc-role">${g.role==='owner'?'👑 그룹장':'🤝 멤버'} · 최소 ${(g.min/10000).toFixed(0)}만원/가게</div></div>
+    <span class="badge bg-g">활성</span>
+   </div>
+   <div class="gc-stats">
+    <div class="gc-stat">소비자 <strong>${g.part}명</strong></div>
+    <div class="gc-stat">인증 <strong>${g.rec}건</strong></div>
+    <div class="gc-stat">가게 <strong>${g.stores.length}곳</strong></div>
+   </div>
+   <div class="gc-btns">
+    <button class="btn btn-pr btn-sm" onclick="showGD(${g.id})" style="flex:1">📊 상세·인증 현황</button>
+   </div>
+  </div>`).join('');
+}
+function renderStorePickGrid(){
+ const cands=RECS.filter(r=>!r.p);
+ document.getElementById('store-pick-grid').innerHTML=cands.map((s,i)=>`
+  <div class="store-pick" id="sp-${i}" onclick="togglePick(${i},'${s.name}')">
+   <div class="sp-icon">${s.icon}</div>
+   <div class="sp-name">${s.name}</div>
+  </div>`).join('');
+}
+function togglePick(i,name){
+ const el=document.getElementById('sp-'+i);
+ const idx=selPicks.indexOf(name);
+ if(idx>=0){selPicks.splice(idx,1);el.classList.remove('sel');}
+ else{selPicks.push(name);el.classList.add('sel');}
+}
+function openCreateModal(){selPicks=[];renderStorePickGrid();document.getElementById('create-modal').classList.add('open');}
+function closeCreateModal(){document.getElementById('create-modal').classList.remove('open');}
+function submitCreate(){
+ const name=document.getElementById('cg-name').value||'새 연계 그룹';
+ const rate=document.getElementById('cg-rate').value||10;
+ const min=parseInt(document.getElementById('cg-min').value)||10000;
+ if(!selPicks.length){toast('파트너 가게를 최소 1곳 선택하세요','warn');return;}
+ const icons=selPicks.map(n=>{const r=RECS.find(x=>x.name===n);return r?r.icon:'🏪';});
+ MY_GROUPS.push({id:Date.now(),name,stores:['일등축산',...selPicks],icons:['🥩',...icons],reward:`각 ${rate}% 할인`,min,part:0,rec:0,role:'owner'});
+ closeCreateModal();
+ toast(`✅ "${name}" 그룹이 생성되었습니다!`,'success');
+ renderGroups();renderDashboard();
+}
+function handleReq(id,accept){
+ const r=REQUESTS.find(x=>x.id===id);
+ REQUESTS=REQUESTS.filter(x=>x.id!==id);
+ document.getElementById('req-cnt').textContent=REQUESTS.length+'건';
+ if(accept&&r){MY_GROUPS.push({id:Date.now(),name:r.groupName,stores:r.stores,icons:r.icons,reward:r.reward,min:10000,part:0,rec:0,role:'member'});toast(`✅ "${r.groupName}" 그룹에 참여했습니다!`,'success');}
+ else toast('요청을 거절했습니다','warn');
+ renderGroups();renderDashboard();
+}
+function inviteStore(name){toast(`${name}에 그룹 초대 요청을 보냈습니다!`,'success');}
+function showGD(gid){
+ const g=MY_GROUPS.find(x=>x.id===gid);if(!g)return;
+ const sRec=[
+  {c:'소비자 ****2847',s:g.stores[0],a:'28,000원',t:'14:23',done:true},
+  {c:'소비자 ****1523',s:g.stores[1%g.stores.length],a:'15,500원',t:'13:45',done:g.stores.length>2},
+  {c:'소비자 ****9031',s:g.stores[0],a:'32,000원',t:'13:10',done:true},
+  {c:'소비자 ****4417',s:g.stores[0],a:'19,800원',t:'12:30',done:false},
+ ];
+ document.getElementById('gd-content').innerHTML=`
+  <div style="font-size:15px;font-weight:900;color:#1E293B;margin-bottom:14px">${g.name}</div>
+  <div style="display:flex;gap:14px;background:#F8FAFC;border-radius:12px;padding:14px;margin-bottom:14px">
+   <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:900;color:#F97316">${g.part}</div><div style="font-size:10px;color:#64748B">참여 소비자</div></div>
+   <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:900;color:#16A34A">${g.rec}</div><div style="font-size:10px;color:#64748B">이번달 인증</div></div>
+   <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:900;color:#2563EB">${g.stores.length}</div><div style="font-size:10px;color:#64748B">참여 가게</div></div>
+  </div>
+  <div style="font-size:12px;font-weight:800;color:#1E293B;margin-bottom:8px">참여 가게 목록</div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">${g.icons.map((ic,i)=>`<div style="display:flex;align-items:center;gap:5px;background:#F8FAFC;border-radius:8px;padding:7px 10px"><span style="font-size:16px">${ic}</span><span style="font-size:11px;font-weight:700;color:#374151">${g.stores[i]}</span></div>`).join('')}</div>
+  <div style="font-size:12px;font-weight:800;color:#1E293B;margin-bottom:8px">최근 영수증 인증</div>
+  ${sRec.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F8FAFC"><div style="width:30px;height:30px;background:#F0FDF4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🧾</div><div style="flex:1"><div style="font-size:12px;font-weight:700">${r.c}</div><div style="font-size:10px;color:#94A3B8">${r.s} · ${r.t}</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:700">${r.a}</div><span class="badge ${r.done?'bg-g':'bg-o'}">${r.done?'완료':'대기'}</span></div></div>`).join('')}`;
+ document.getElementById('gd-modal').classList.add('open');
+}
+function closeGD(){document.getElementById('gd-modal').classList.remove('open');}
+function initMap(){
+ const map=L.map('seller-map').setView([36.3294,127.4317],17);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+ const myIc=L.divIcon({className:'',html:'<div style="width:36px;height:36px;background:#F97316;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.3)">🥩</div>',iconSize:[36,36],iconAnchor:[18,18]});
+ L.marker([36.3258,127.4261],{icon:myIc}).addTo(map).bindPopup('<strong>🥩 일등축산</strong><br><span style="color:#F97316">내 가게</span>');
+ MAP_STORES.forEach(s=>{
+  const ic=L.divIcon({className:'',html:`<div style="width:28px;height:28px;background:${s.color};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:12px">${s.icon}</div>`,iconSize:[28,28],iconAnchor:[14,14]});
+  L.marker([s.lat,s.lng],{icon:ic}).addTo(map).bindPopup(`<strong>${s.name}</strong>${s.p?'<br><span style="color:#16A34A">✓ 파트너</span>':''}`);
+  if(s.p)L.polyline([[36.3258,127.4261],[s.lat,s.lng]],{color:s.color,weight:2,dashArray:'5,8',opacity:.6}).addTo(map);
+ });
+}
+function initCharts(){
+ new Chart(document.getElementById('s-sales'),{type:'line',data:{labels:['3월','4월','5월','6월','7월','8월'],datasets:[{label:'총 매출(만원)',data:[280,295,310,345,380,410],borderColor:'#F97316',backgroundColor:'rgba(249,115,22,.1)',fill:true,tension:.4,borderWidth:2},{label:'연계 유입(만원)',data:[0,0,12,38,61,82],borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.1)',fill:true,tension:.4,borderWidth:2,borderDash:[5,5]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},scales:{y:{beginAtZero:false,grid:{color:'#F1F5F9'}},x:{grid:{display:false}}}}});
+ new Chart(document.getElementById('s-compare'),{type:'bar',data:{labels:['방문 고객','재방문율%','평균 구매액'],datasets:[{label:'도입 전',data:[85,22,185],backgroundColor:'rgba(203,213,225,.8)',borderRadius:5},{label:'도입 후',data:[112,38,212],backgroundColor:'rgba(249,115,22,.8)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'}},x:{grid:{display:false}}}}});
+ new Chart(document.getElementById('s-hour'),{type:'bar',data:{labels:['9시','10시','11시','12시','13시','14시','15시','16시','17시','18시'],datasets:[{data:[2,5,8,12,9,14,11,8,6,3],backgroundColor:'rgba(249,115,22,.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'}},x:{grid:{display:false}}}}});
+}
+let tTimer;
+function toast(msg,type='success'){
+ const t=document.getElementById('s-toast');t.textContent=msg;t.className='toast '+type+' show';
+ clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+window.addEventListener('load',()=>{renderDashboard();renderRec();renderGroups();});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "마켓링크 판매자",
+  "short_name": "마켓링크 판매",
+  "description": "골목상권 스마트 연계 플랫폼 - 판매자 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#F97316",
+  "orientation": "portrait",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
